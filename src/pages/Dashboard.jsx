@@ -123,7 +123,7 @@ export const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -171,10 +171,10 @@ export const Dashboard = () => {
           </div>
         </div>
       ) : (
-        <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-          <div className="space-y-6 sm:space-y-8">
+        <main className="px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+          <div className="space-y-4 sm:space-y-6">
           {/* Stats Grid - 4 Columns */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
             <StatCard
               icon={Wifi}
               title="Active Rovers"
@@ -202,9 +202,9 @@ export const Dashboard = () => {
           </div>
 
           {/* Charts Section - 2/3 and 1/3 split */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-max">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Sensor Trends Chart */}
-            <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
+            <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
               <div className="mb-4 sm:mb-6">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900">Sensor Trends</h2>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">Temperature and humidity (30 days)</p>
