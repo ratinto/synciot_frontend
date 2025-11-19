@@ -171,7 +171,8 @@ export const Dashboard = () => {
           </div>
         </div>
       ) : (
-        <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
+        <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+          <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {/* Stats Grid - 4 Columns */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <StatCard
@@ -368,6 +369,7 @@ export const Dashboard = () => {
           {/* Footer */}
           <div className="text-center text-xs sm:text-sm text-gray-500 pt-4">
             <p>Last updated: {today}</p>
+          </div>
           </div>
         </main>
       )}
