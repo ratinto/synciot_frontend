@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/authService';
+import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -20,15 +20,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await authService.login(email, password);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    if (response?.data?.user) {
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 
   const signup = async (email, password, name) => {
     const response = await authService.signup(email, password, name);
-    setUser(response.user);
-    setIsAuthenticated(true);
+    if (response?.data?.user) {
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+    }
     return response;
   };
 

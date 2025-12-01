@@ -2,7 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { Dashboard } from './pages/Dashboard';
+import { Dashboard } from './pages/DashboardNew';
+import { RobotDetail } from './pages/RobotDetail';
+import { AddRobot } from './pages/AddRobot';
+import { AddSensor } from './pages/AddSensor';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +52,30 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/robot/:id"
+        element={
+          <ProtectedRoute>
+            <RobotDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/robot/add"
+        element={
+          <ProtectedRoute>
+            <AddRobot />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/robot/:id/add-sensor"
+        element={
+          <ProtectedRoute>
+            <AddSensor />
           </ProtectedRoute>
         }
       />

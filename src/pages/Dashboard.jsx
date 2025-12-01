@@ -123,9 +123,9 @@ export const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden mx-11">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm mx-40">
         <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex justify-between items-start sm:items-center gap-4">
             <div className="flex-1 min-w-0">
