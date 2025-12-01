@@ -1,46 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { sensorService } from '../services/api';
+import { robotService } from '../services/api';
 import { ArrowLeft, Save, Loader } from 'lucide-react';
 
-const sensorTypes = [
-  { value: 'temperature', label: 'Temperature', defaultUnit: '°C' },
-  { value: 'humidity', label: 'Humidity', defaultUnit: '%' },
-  { value: 'distance', label: 'Distance', defaultUnit: 'cm' },
-  { value: 'battery', label: 'Battery', defaultUnit: '%' },
-  { value: 'signal', label: 'Signal Strength', defaultUnit: 'dBm' },
-  { value: 'pressure', label: 'Pressure', defaultUnit: 'hPa' },
-  { value: 'light', label: 'Light', defaultUnit: 'lux' },
-];
-
-export const AddSensor = () => {
+export const EditRobot = () => {
   const { id: robotId } = useParams();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
-    type: 'temperature',
-    value: 0,
-    unit: '°C',
+    status: 'offline',
+    battery: 0,
   });
+
+  useEffect(() => {
+    fetchRobot();
+  }, [robotId]);
+
+  const fetchRobot = async () => {
+    try {
+      setIsLoading(true);
+      const response = await robotService.getRobotById(robotId);
+      if (response?.success && response?.data) {
+        const robot = response.data;
+        setFormData({
+          name: robot.name,
+          status: robot.status,
+          battery: robot.battery,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching robot:', err);
+      setError('Failed to load robot details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'type') {
-      const selectedType = sensorTypes.find(t => t.value === value);
-      setFormData(prev => ({
-        ...prev,
-        type: value,
-        unit: selectedType?.defaultUnit || '',
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: name === 'value' ? parseFloat(value) : value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'battery' ? parseInt(value) : value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -48,30 +52,40 @@ export const AddSensor = () => {
     setError('');
     
     if (!formData.name.trim()) {
-      setError('Sensor name is required');
+      setError('Robot name is required');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      console.log('Submitting sensor data:', formData);
-      console.log('Robot ID:', robotId);
-      const response = await sensorService.addSensor(robotId, formData);
-      console.log('Response:', response);
+      console.log('Updating robot:', robotId, formData);
+      const response = await robotService.updateRobot(robotId, formData);
+      console.log('Update response:', response);
       if (response?.success) {
         navigate(`/robot/${robotId}`);
       } else {
-        setError(response?.message || 'Failed to add sensor. Please try again.');
+        setError(response?.message || 'Failed to update robot');
       }
     } catch (err) {
-      console.error('Error adding sensor:', err);
+      console.error('Error updating robot:', err);
       console.error('Error response:', err.response?.data);
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to add sensor. Please try again.';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update robot';
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
+          <p className="mt-4 text-gray-600">Loading robot...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,8 +99,8 @@ export const AddSensor = () => {
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Add New Sensor</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">Add a sensor to this robot</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Edit Robot</h1>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Update robot details</p>
             </div>
           </div>
         </div>
@@ -102,10 +116,10 @@ export const AddSensor = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Sensor Name */}
+              {/* Robot Name */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Sensor Name *
+                  Robot Name *
                 </label>
                 <input
                   type="text"
@@ -113,68 +127,53 @@ export const AddSensor = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g., Temperature Sensor"
+                  placeholder="e.g., Mars Rover"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
 
-              {/* Sensor Type */}
+              {/* Status */}
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
-                  Sensor Type *
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                  Status *
                 </label>
                 <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
+                  id="status"
+                  name="status"
+                  value={formData.status}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {sensorTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label} ({type.defaultUnit})
-                    </option>
-                  ))}
+                  <option value="online">Online</option>
+                  <option value="offline">Offline</option>
+                  <option value="error">Error</option>
                 </select>
               </div>
 
-              {/* Current Value */}
+              {/* Battery */}
               <div>
-                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Value *
+                <label htmlFor="battery" className="block text-sm font-medium text-gray-700 mb-2">
+                  Battery Level: {formData.battery}%
                 </label>
                 <input
-                  type="number"
-                  id="value"
-                  name="value"
-                  value={formData.value}
+                  type="range"
+                  id="battery"
+                  name="battery"
+                  min="0"
+                  max="100"
+                  value={formData.battery}
                   onChange={handleChange}
-                  step="0.01"
-                  placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0%</span>
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
               </div>
 
-              {/* Unit */}
-              <div>
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-2">
-                  Unit *
-                </label>
-                <input
-                  type="text"
-                  id="unit"
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleChange}
-                  placeholder="e.g., °C, %, cm"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {/* Buttons */}
+              {/* Submit Buttons */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -186,18 +185,18 @@ export const AddSensor = () => {
                 </button>
                 <button
                   type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader className="w-4 h-4 animate-spin" />
-                      Adding...
+                      Updating...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Add Sensor
+                      Update Robot
                     </>
                   )}
                 </button>

@@ -15,8 +15,23 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  console.log('API Request:', config.method.toUpperCase(), config.baseURL + config.url);
+  console.log('Request data:', config.data);
   return config;
 });
+
+// Add response interceptor to log errors
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.response?.status, error.config?.url);
+    console.error('Error details:', error.response?.data);
+    return Promise.reject(error);
+  }
+);
 
 // ==================== AUTH SERVICE ====================
 export const authService = {
@@ -26,9 +41,9 @@ export const authService = {
       password,
       name,
     });
-    if (response.data?.data?.token) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    if (response.data?.token) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response.data;
   },
@@ -38,9 +53,9 @@ export const authService = {
       email,
       password,
     });
-    if (response.data?.data?.token) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    if (response.data?.token) {
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response.data;
   },

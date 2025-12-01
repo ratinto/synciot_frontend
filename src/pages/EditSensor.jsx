@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sensorService } from '../services/api';
 import { ArrowLeft, Save, Loader } from 'lucide-react';
@@ -13,9 +13,10 @@ const sensorTypes = [
   { value: 'light', label: 'Light', defaultUnit: 'lux' },
 ];
 
-export const AddSensor = () => {
-  const { id: robotId } = useParams();
+export const EditSensor = () => {
+  const { id: sensorId } = useParams();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -24,6 +25,33 @@ export const AddSensor = () => {
     value: 0,
     unit: '°C',
   });
+  const [robotId, setRobotId] = useState(null);
+
+  useEffect(() => {
+    fetchSensor();
+  }, [sensorId]);
+
+  const fetchSensor = async () => {
+    try {
+      setIsLoading(true);
+      const response = await sensorService.getSensorById(sensorId);
+      if (response?.success && response?.data) {
+        const sensor = response.data;
+        setFormData({
+          name: sensor.name,
+          type: sensor.type,
+          value: sensor.value,
+          unit: sensor.unit,
+        });
+        setRobotId(sensor.robotId);
+      }
+    } catch (err) {
+      console.error('Error fetching sensor:', err);
+      setError('Failed to load sensor details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,24 +82,34 @@ export const AddSensor = () => {
 
     setIsSubmitting(true);
     try {
-      console.log('Submitting sensor data:', formData);
-      console.log('Robot ID:', robotId);
-      const response = await sensorService.addSensor(robotId, formData);
-      console.log('Response:', response);
+      console.log('Updating sensor:', sensorId, formData);
+      const response = await sensorService.updateSensor(sensorId, formData);
+      console.log('Update response:', response);
       if (response?.success) {
         navigate(`/robot/${robotId}`);
       } else {
-        setError(response?.message || 'Failed to add sensor. Please try again.');
+        setError(response?.message || 'Failed to update sensor');
       }
     } catch (err) {
-      console.error('Error adding sensor:', err);
+      console.error('Error updating sensor:', err);
       console.error('Error response:', err.response?.data);
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to add sensor. Please try again.';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update sensor';
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
+          <p className="mt-4 text-gray-600">Loading sensor...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,8 +123,8 @@ export const AddSensor = () => {
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Add New Sensor</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">Add a sensor to this robot</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Edit Sensor</h1>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Update sensor details</p>
             </div>
           </div>
         </div>
@@ -174,7 +212,7 @@ export const AddSensor = () => {
                 />
               </div>
 
-              {/* Buttons */}
+              {/* Submit Buttons */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -186,18 +224,18 @@ export const AddSensor = () => {
                 </button>
                 <button
                   type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader className="w-4 h-4 animate-spin" />
-                      Adding...
+                      Updating...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Add Sensor
+                      Update Sensor
                     </>
                   )}
                 </button>

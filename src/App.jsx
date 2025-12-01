@@ -6,6 +6,8 @@ import { Dashboard } from './pages/DashboardNew';
 import { RobotDetail } from './pages/RobotDetail';
 import { AddRobot } from './pages/AddRobot';
 import { AddSensor } from './pages/AddSensor';
+import { EditSensor } from './pages/EditSensor';
+import { EditRobot } from './pages/EditRobot';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +66,14 @@ function AppContent() {
         }
       />
       <Route
+        path="/robot/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditRobot />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/robot/add"
         element={
           <ProtectedRoute>
@@ -76,6 +86,14 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <AddSensor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sensor/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditSensor />
           </ProtectedRoute>
         }
       />

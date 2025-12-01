@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await authService.login(email, password);
-    if (response?.data?.user) {
-      setUser(response.data.user);
+    if (response?.user) {
+      setUser(response.user);
       setIsAuthenticated(true);
     }
     return response;
@@ -29,8 +29,8 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, name) => {
     const response = await authService.signup(email, password, name);
-    if (response?.data?.user) {
-      setUser(response.data.user);
+    if (response?.user) {
+      setUser(response.user);
       setIsAuthenticated(true);
     }
     return response;
