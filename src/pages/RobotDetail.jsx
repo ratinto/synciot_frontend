@@ -56,6 +56,14 @@ export const RobotDetail = () => {
 
   useEffect(() => {
     fetchRobotDetails();
+    
+    // Auto-refresh every 5 seconds to get latest data
+    const interval = setInterval(() => {
+      fetchRobotDetails();
+    }, 5000); // Refresh every 5 seconds
+    
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, [id]);
 
   const handleRefresh = () => {

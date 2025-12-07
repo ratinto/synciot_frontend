@@ -42,6 +42,14 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchRobots();
+    
+    // Auto-refresh every 10 seconds to get latest robot status
+    const interval = setInterval(() => {
+      fetchRobots();
+    }, 10000); // Refresh every 10 seconds
+    
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
