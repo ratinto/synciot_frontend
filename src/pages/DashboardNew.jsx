@@ -13,7 +13,9 @@ import {
   Activity,
   Trash2,
   Edit,
-  Eye
+  Eye,
+  Search,
+  X
 } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -23,6 +25,11 @@ export const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Search, Filter, Sort states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'online', 'offline'
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
 
   const fetchRobots = async () => {
     try {
@@ -92,7 +99,40 @@ export const Dashboard = () => {
     day: 'numeric',
   });
 
-  // Calculate statistics
+  // Filter, Search, and Sort Logic
+  const getFilteredAndSortedRobots = () => {
+    let filtered = [...robots];
+
+    // 1. Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(robot => robot.status === statusFilter);
+    }
+
+    // 2. Search by name
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(robot =>
+        robot.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // 3. Sort by name
+    filtered.sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      
+      if (sortOrder === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredRobots = getFilteredAndSortedRobots();
+
+  // Calculate statistics (from original robots, not filtered)
   const stats = {
     total: robots.length,
     online: robots.filter(r => r.status === 'online').length,
@@ -188,6 +228,74 @@ export const Dashboard = () => {
               </div>
             </div>
 
+            {/* Search, Filter, Sort Controls */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search robots..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="online">Online Only</option>
+                    <option value="offline">Offline Only</option>
+                  </select>
+                </div>
+
+                {/* Sort Order */}
+                <div>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="asc">Name: A → Z</option>
+                    <option value="desc">Name: Z → A</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Active Filters Display */}
+              {(searchQuery || statusFilter !== 'all') && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                  <span>Showing {filteredRobots.length} of {robots.length} robots</span>
+                  {(searchQuery || statusFilter !== 'all') && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setStatusFilter('all');
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Add Robot Button */}
             <div className="flex justify-between items-center">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">All Robots</h2>
@@ -202,11 +310,20 @@ export const Dashboard = () => {
             </div>
 
             {/* Robots Grid */}
-            {robots.length === 0 ? (
+            {filteredRobots.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-8 sm:p-12 text-center">
                 <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Robots Yet</h3>
-                <p className="text-gray-500 mb-4">Get started by adding your first robot</p>
+                {robots.length === 0 ? (
+                  <>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Robots Yet</h3>
+                    <p className="text-gray-500 mb-4">Get started by adding your first robot</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Robots Found</h3>
+                    <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+                  </>
+                )}
                 <button
                   onClick={handleAddRobot}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -217,7 +334,7 @@ export const Dashboard = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {robots.map((robot) => (
+                {filteredRobots.map((robot) => (
                   <div
                     key={robot.id}
                     className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
